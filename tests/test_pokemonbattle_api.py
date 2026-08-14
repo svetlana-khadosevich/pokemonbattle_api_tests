@@ -1,21 +1,16 @@
 from http import HTTPStatus
 from requests import Session
 
-import requests
 import pytest
 
-BASE_URL = "https://api.pokemonbattle.ru/v2"
-AUTH_HEADER={"trainer_token": "92a0aef22db567f6a74669289c577f6a"}
-
-@pytest.fixture(scope="session")
-def api_session():
-    with requests.Session() as pokemon_session:
-        pokemon_session.headers.update(AUTH_HEADER)
-        yield pokemon_session
+from data.api_constants import TRAINER_ID
+from data.api_constants import TRAINER_ID_MY
+from config.api_config import BASE_URL
 
 #Задание 2
 class TestGetTrainer:
     # получение тренеров по городу
+    @pytest.mark.smoke
     def test__get_trainer_by_city__positive(self, api_session: Session) -> None:
         response = api_session.get(
             BASE_URL + '/trainers',
@@ -27,16 +22,19 @@ class TestGetTrainer:
             assert trainer["city"]=="Москва"
 
     # получение тренеров по ID
+    @pytest.mark.smoke
     def test__get_trainer_by_id__positive(self, api_session: Session) -> None:
         response = api_session.get(
             BASE_URL + '/trainers',
-            params={"trainer_id":"66624"}
+            params={"trainer_id": TRAINER_ID}
         )
         assert response.status_code == HTTPStatus.OK
         body = response.json()
-        assert body["data"][0]["id"]=="66624"
+        assert body["data"][0]["id"]== TRAINER_ID
 
     # получение тренеров по городу с сортировкой по убыванию уровня
+    @pytest.mark.smoke
+    @pytest.mark.skip
     def test__get_trainer_by_city_desc_level__positive(self, api_session: Session) -> None:
         response = api_session.get(
             BASE_URL + '/trainers',
@@ -53,12 +51,13 @@ class TestGetTrainer:
 #Задание 3
 class TestPatchPokemons:
     # функция, которая меняет имя покемона через PATCH
+    @pytest.mark.regress
     def test_change_pokemons_name(self, api_session: Session) -> None:
         # функция, которая нокаутирует всех покемонов тренера через POST
         def knockout_all_trainers_pokemons(api_session: Session) -> None:
             response = api_session.get(
                 BASE_URL + "/pokemons",
-                params={"trainer_id": 66618},
+                params={"trainer_id": TRAINER_ID_MY},
             )
             body = response.json()
             for pokemon_id in [x['id'] for x in body["data"] if x["status"] == 1]:
@@ -70,7 +69,7 @@ class TestPatchPokemons:
 
             response = api_session.get(
                 BASE_URL + '/pokemons',
-                params={"trainer_id": 66618}
+                params={"trainer_id": TRAINER_ID_MY}
             )
             body = response.json()
             for pokemon in body["data"]:
