@@ -1,11 +1,16 @@
 from http import HTTPStatus
+
+import deepdiff
 from requests import Session
+from jsonschema import validate
+from deepdiff import DeepDiff
 
 import pytest
 
 from data.api_constants import TRAINER_ID
 from data.api_constants import TRAINER_ID_MY
 from config.api_config import BASE_URL
+from helpers.file_helpers import load_yaml
 
 #Задание 2
 class TestGetTrainer:
@@ -114,5 +119,88 @@ class TestPatchPokemons:
         assert response.status_code == HTTPStatus.OK
         assert body["data"][0]["name"] == "John"
 
+
+#Задание 1. JSON схема
+
+class TestGetBattle:
+    def test__get_battle(self, api_session: Session) -> None:
+        response = api_session.get(
+             BASE_URL + '/battle',
+             params={"trainer_id": TRAINER_ID_MY}
+         )
+        assert response.status_code == HTTPStatus.OK
+        body = response.json()
+        template = load_yaml("get_battle.yml")
+        validate(body, template)
+
+
+#Задание 2. DeepDiff
+class TestGetachievements:
+    def test__get_achievements(self, api_session: Session) -> None:
+        response = api_session.get(
+            BASE_URL + '/achievements',
+            params={"trainer_id": TRAINER_ID_MY}
+        )
+        assert response.status_code == HTTPStatus.OK
+        body = response.json()
+        template = load_yaml("get_achievements.yml")
+        validate(body, template)
+
+        template1 = {
+            "data": [
+                {
+                    "slug": "beginning",
+                    "is_reached": False
+                },
+                {
+                    "slug": "out_of_battles",
+                    "is_reached": False
+                },
+                {
+                    "slug": "self_knockout",
+                    "is_reached": False
+                },
+                {
+                    "slug": "max_level"
+                },
+                {
+                    "slug": "one_vs_seven",
+                    "is_reached": False
+                },
+                {
+                    "slug": "five_battles",
+                    "is_reached": False
+                },
+                {
+                    "slug": "three_defends",
+                    "is_reached": False
+                }
+            ]
+        }
+        compare = DeepDiff(
+            template1, body,
+            exclude_regex_paths = [
+                r"root\['data'\]\[\d+\]\['is_reached'\]"
+
+            ]
+        )
+        assert not compare, compare
+
+
+#Задание 3. Soft Asserts
+
+    def test__get_achievements__negative(self, api_session: Session, check) -> None:
+        response = api_session.get(
+            BASE_URL + '/achievements',
+            params = {"trainer_id": TRAINER_ID_MY,
+                    "is_reached": "522"
+                    }
+        )
+        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+        body = response.json()
+        with check:
+            assert body["status"] == "error"
+        with check:
+             assert body["message"] != ""
 
 
