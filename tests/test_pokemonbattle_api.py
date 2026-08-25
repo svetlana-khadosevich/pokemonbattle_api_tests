@@ -125,8 +125,7 @@ class TestPatchPokemons:
 class TestGetBattle:
     def test__get_battle(self, api_session: Session) -> None:
         response = api_session.get(
-             BASE_URL + '/battle',
-             params={"trainer_id": TRAINER_ID_MY}
+             BASE_URL + '/battle'
          )
         assert response.status_code == HTTPStatus.OK
         body = response.json()
@@ -138,8 +137,7 @@ class TestGetBattle:
 class TestGetachievements:
     def test__get_achievements(self, api_session: Session) -> None:
         response = api_session.get(
-            BASE_URL + '/achievements',
-            params={"trainer_id": TRAINER_ID_MY}
+            BASE_URL + '/achievements'
         )
         assert response.status_code == HTTPStatus.OK
         body = response.json()
