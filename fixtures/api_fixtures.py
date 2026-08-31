@@ -3,6 +3,7 @@ import os
 import requests
 import pytest
 
+
 @pytest.fixture(scope="session")
 def api_session():
     with requests.Session() as pokemon_session:

@@ -1,0 +1,18 @@
+[MASTER]
+ignore=venv,data
+
+[MESSAGES CONTROL]
+disable=C0114, C0116, W3101, W0613, R0903
+
+[FORMAT]
+max-line-length=130
+
+[DESIGN]
+max-args=7
+max-attributes=18
+max-Locals=15
+max-branches=12
+max-statements=58
+
+[BASIC]
+good-names=j,k,ex,Run,_,db
