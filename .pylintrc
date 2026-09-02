@@ -2,7 +2,7 @@
 ignore=venv,data
 
 [MESSAGES CONTROL]
-disable=C0114, C0116, W3101, W0613, R0903
+disable=C0114, C0116, W3101, W0613, R0903, C0115, W0621
 
 [FORMAT]
 max-line-length=130

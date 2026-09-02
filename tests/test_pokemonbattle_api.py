@@ -1,5 +1,6 @@
 from http import HTTPStatus
 
+import allure
 from requests import Session
 from jsonschema import validate
 from deepdiff import DeepDiff
@@ -13,55 +14,62 @@ from helpers.file_helpers import load_yaml
 
 
 # Задание 2
+@allure.suite("Тесты на метод GET/trainers")
 class TestGetTrainer:
-    '''Тесты на метод GET/trainers'''
-    # получение тренеров по городу
+    @allure.title("Получение тренера по городу 'city:Москва'")
     @pytest.mark.smoke
     def test__get_trainer_by_city__positive(self, api_session: Session) -> None:
-        response = api_session.get(
-            BASE_URL + '/trainers',
-            params={"city": "Москва"}
-        )
-        assert response.status_code == HTTPStatus.OK
-        body = response.json()
-        for trainer in body["data"]:
-            assert trainer["city"] == "Москва"
+        with allure.step("Получаем список тренеров по городу"):
+            response = api_session.get(
+                BASE_URL + '/trainers',
+                params={"city": "Москва"}
+            )
+        with allure.step("Проверяем код ответа"):
+            assert response.status_code == HTTPStatus.OK
+        with allure.step("Проверяем телло ответа"):
+            body = response.json()
+        with allure.step("Проверяем, что во всех объектах, город соответствует переданному при отправке запроса"):
+            for trainer in body["data"]:
+                assert trainer["city"] == "Москва"
 
-    # получение тренеров по ID
+    @allure.title("Получение тренера по ID")
     @pytest.mark.smoke
     def test__get_trainer_by_id__positive(self, api_session: Session) -> None:
         response = api_session.get(
             BASE_URL + '/trainers',
             params={"trainer_id": TRAINER_ID}
         )
-        assert response.status_code == HTTPStatus.OK
-        body = response.json()
+        with allure.step("Проверяем код ответа"):
+            assert response.status_code == HTTPStatus.OK
+        with allure.step("Проверяем телло ответа"):
+            body = response.json()
         assert body["data"][0]["id"] == TRAINER_ID
 
-    # получение тренеров по городу с сортировкой по убыванию уровня
+    @allure.title("Получение тренеров по городу с сортировкой по убыванию уровня")
     @pytest.mark.smoke
-    @pytest.mark.skip
     def test__get_trainer_by_city_desc_level__positive(self, api_session: Session) -> None:
         response = api_session.get(
             BASE_URL + '/trainers',
             params={"city": "Москва", "sort": "desc_level"}
         )
-        assert response.status_code == HTTPStatus.OK
-        body = response.json()
-        trainers = body.get('data', [])
-        for i in range(len(trainers) - 1):
-            current_level = int(trainers[i].get('level', 0))
-            next_level = int(trainers[i + 1].get('level', 0))
-            assert current_level >= next_level
+        with allure.step("Проверяем код ответа"):
+            assert response.status_code == HTTPStatus.OK
+        with allure.step("Проверяем телло ответа"):
+            body = response.json()
+        with allure.step("Проверяем сортировку"):
+            trainers = body.get('data', [])
+            for i in range(len(trainers) - 1):
+                current_level = int(trainers[i].get('level', 0))
+                next_level = int(trainers[i + 1].get('level', 0))
+                assert current_level >= next_level
 
 
 # Задание 3
-class TestPutPokemons:
-    '''Тесты на метод PUT/pokemons'''
-    # функция, которая меняет имя покемона через PATCH
+@allure.suite("Тесты на метод PATCH/pokemons")
+class TestPatchPokemons:
+    @allure.title("Изменение имени покемона PATCH/pokemons")
     @pytest.mark.regress
     def test_change_pokemons_name(self, api_session: Session) -> None:
-        # функция, которая нокаутирует всех покемонов тренера через POST
         def knockout_all_trainers_pokemons(api_session: Session) -> None:
             response = api_session.get(
                 BASE_URL + "/pokemons",
@@ -83,7 +91,7 @@ class TestPutPokemons:
             for pokemon in body["data"]:
                 assert pokemon["status"] == 0
 
-        # функция, которая создает нового покемона через POST
+        @allure.step("Создаем нового покемона через POST")
         def create_pokemon(api_session: Session) -> str:
             response = api_session.post(
                 BASE_URL + '/pokemons',
@@ -108,43 +116,44 @@ class TestPutPokemons:
                   }
         )
         body = response.json()
-        # проверки, что информация о покемоне изменилась
-        assert response.status_code == HTTPStatus.OK
-        assert body["message"] == "Информация о покемоне обновлена"
-
-        # получение информации о покемоне через ручку GET
+        with allure.step("Проверка, что имя покемона изменилось"):
+            assert response.status_code == HTTPStatus.OK
+            assert body["message"] == "Информация о покемоне обновлена"
         response = api_session.get(
             BASE_URL + '/pokemons',
             params={"pokemon_id": pokemon_id}
         )
         body = response.json()
-        # проверки, что у покемона действительно новое имя
         assert response.status_code == HTTPStatus.OK
         assert body["data"][0]["name"] == "John"
 
 
 # Задание 1. JSON схема
-
+@allure.suite("Тесты на метод GET/battle")
 class TestGetBattle:
-    '''Проверка схемы ответа метода GET/battle'''
+    @allure.title("Проверка схемы ответа метода")
     def test__get_battle(self, api_session: Session) -> None:
         response = api_session.get(
              BASE_URL + '/battle'
                                   )
-        assert response.status_code == HTTPStatus.OK
+        with allure.step("Проверяем код ответа"):
+            assert response.status_code == HTTPStatus.OK
         body = response.json()
         template = load_yaml("get_battle.yml")
-        validate(body, template)
+        with allure.step("Проверяем тело ответа на соответствие схеме"):
+            validate(body, template)
 
 
 # Задание 2. DeepDiff
+@allure.suite("Тесты на метод GET/achievements")
 class TestGetAchievements:
-    '''Проверка схемы ответа метода GET/achievements'''
+    @allure.title("Проверка схемы ответа метода")
     def test__get_achievements(self, api_session: Session) -> None:
         response = api_session.get(
             BASE_URL + '/achievements'
         )
-        assert response.status_code == HTTPStatus.OK
+        with allure.step("Проверяем код ответа"):
+            assert response.status_code == HTTPStatus.OK
         body = response.json()
         template = load_yaml("get_achievements.yml")
         validate(body, template)
@@ -187,9 +196,11 @@ class TestGetAchievements:
 
             ]
         )
-        assert not compare, compare
+        with allure.step("С помощью DeepDiff проверяем, что тело ответа соответствует шаблону, игнорируя 'is_reached'"):
+            assert not compare, compare
 
 # Задание 3. Soft Asserts
+    @allure.title("Негативный тест 422 UnprocessableEntity")
     def test__get_achievements__negative(self, api_session: Session, check) -> None:
         response = api_session.get(
             BASE_URL + '/achievements',
@@ -197,7 +208,8 @@ class TestGetAchievements:
                     "is_reached": "522"
                     }
                                    )
-        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+        with allure.step("Проверяем код ответа"):
+            assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
         body = response.json()
         with check:
             assert body["status"] == "error"
