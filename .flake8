@@ -1,0 +1,11 @@
+[flake8]
+max-line-length = 130
+
+exclude =
+     .git,
+      venv
+
+ignore = E126
+
+per-file-ignores =
+      utils.py: E501
