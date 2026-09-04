@@ -49,3 +49,7 @@ class ApiSession:
     @allure.step("PATCH-запрос к адресу {url}")
     def patch(self, url: str, params: dict | None = None, json: dict | None = None):
         return self._send(method="PATCH", url=url, params=params, json=json)
+
+    @allure.step("PUT-запрос к адресу {url}")
+    def put(self, url: str, params: dict | None = None, json: dict | None = None):
+        return self._send(method="PUT", url=url, params=params, json=json)
