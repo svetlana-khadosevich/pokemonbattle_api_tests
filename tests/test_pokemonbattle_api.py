@@ -9,7 +9,6 @@ import pytest
 
 from data.api_constants import TRAINER_ID
 from data.api_constants import TRAINER_ID_MY
-from config.api_config import BASE_URL
 from helpers.file_helpers import load_yaml
 
 
@@ -21,7 +20,7 @@ class TestGetTrainer:
     def test__get_trainer_by_city__positive(self, api_session: Session) -> None:
         with allure.step("Получаем список тренеров по городу"):
             response = api_session.get(
-                BASE_URL + '/trainers',
+               '/trainers',
                 params={"city": "Москва"}
             )
         with allure.step("Проверяем код ответа"):
@@ -36,7 +35,7 @@ class TestGetTrainer:
     @pytest.mark.smoke
     def test__get_trainer_by_id__positive(self, api_session: Session) -> None:
         response = api_session.get(
-            BASE_URL + '/trainers',
+            '/trainers',
             params={"trainer_id": TRAINER_ID}
         )
         with allure.step("Проверяем код ответа"):
@@ -49,7 +48,7 @@ class TestGetTrainer:
     @pytest.mark.smoke
     def test__get_trainer_by_city_desc_level__positive(self, api_session: Session) -> None:
         response = api_session.get(
-            BASE_URL + '/trainers',
+            '/trainers',
             params={"city": "Москва", "sort": "desc_level"}
         )
         with allure.step("Проверяем код ответа"):
@@ -72,19 +71,19 @@ class TestPatchPokemons:
     def test_change_pokemons_name(self, api_session: Session) -> None:
         def knockout_all_trainers_pokemons(api_session: Session) -> None:
             response = api_session.get(
-                BASE_URL + "/pokemons",
+                "/pokemons",
                 params={"trainer_id": TRAINER_ID_MY},
             )
             body = response.json()
             for pokemon_id in [x['id'] for x in body["data"] if x["status"] == 1]:
                 response = api_session.post(
-                    BASE_URL + "/pokemons/knockout",
+                    "/pokemons/knockout",
                     json={"pokemon_id": pokemon_id}
                 )
                 assert response.status_code == HTTPStatus.OK
 
             response = api_session.get(
-                BASE_URL + '/pokemons',
+                '/pokemons',
                 params={"trainer_id": TRAINER_ID_MY}
             )
             body = response.json()
@@ -94,7 +93,7 @@ class TestPatchPokemons:
         @allure.step("Создаем нового покемона через POST")
         def create_pokemon(api_session: Session) -> str:
             response = api_session.post(
-                BASE_URL + '/pokemons',
+                '/pokemons',
                 json={
                     "name": "Tayler",
                     "photo_id": 1
@@ -109,7 +108,7 @@ class TestPatchPokemons:
         pokemon_id = create_pokemon(api_session)
 
         response = api_session.patch(
-            BASE_URL + '/pokemons',
+            '/pokemons',
             json={"pokemon_id": pokemon_id,
                   "name": "John",
                   "photo_id": 1
@@ -120,7 +119,7 @@ class TestPatchPokemons:
             assert response.status_code == HTTPStatus.OK
             assert body["message"] == "Информация о покемоне обновлена"
         response = api_session.get(
-            BASE_URL + '/pokemons',
+            '/pokemons',
             params={"pokemon_id": pokemon_id}
         )
         body = response.json()
@@ -134,7 +133,7 @@ class TestGetBattle:
     @allure.title("Проверка схемы ответа метода")
     def test__get_battle(self, api_session: Session) -> None:
         response = api_session.get(
-             BASE_URL + '/battle'
+             '/battle'
                                   )
         with allure.step("Проверяем код ответа"):
             assert response.status_code == HTTPStatus.OK
@@ -150,7 +149,7 @@ class TestGetAchievements:
     @allure.title("Проверка схемы ответа метода")
     def test__get_achievements(self, api_session: Session) -> None:
         response = api_session.get(
-            BASE_URL + '/achievements'
+            '/achievements'
         )
         with allure.step("Проверяем код ответа"):
             assert response.status_code == HTTPStatus.OK
@@ -203,7 +202,7 @@ class TestGetAchievements:
     @allure.title("Негативный тест 422 UnprocessableEntity")
     def test__get_achievements__negative(self, api_session: Session, check) -> None:
         response = api_session.get(
-            BASE_URL + '/achievements',
+            '/achievements',
             params={"trainer_id": TRAINER_ID_MY,
                     "is_reached": "522"
                     }
