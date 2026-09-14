@@ -19,6 +19,8 @@ class TestBuyPremium:
                                         }
                                   )
         assert response.status_code == 200
+        me = lavka_api.get("/me")
+        assert me.json()["is_premium"] is True
 
     @pytest.mark.parametrize(
         "field_name, new_value, expected_message",
