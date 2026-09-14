@@ -9,6 +9,8 @@ import pytest
 
 from data.api_constants import TRAINER_ID
 from data.api_constants import TRAINER_ID_MY
+from config.api_config import BASE_URL
+from helpers.api_helpers import ApiSession
 from helpers.file_helpers import load_yaml
 
 
@@ -214,3 +216,46 @@ class TestGetAchievements:
             assert body["status"] == "error"
         with check:
             assert body["message"] != ""
+
+
+@allure.suite("Тесты прохождения битвы покемонов")
+class TestPokemonBattle:
+    @allure.title("Битва покемонов: успешное прохождение")
+    def test_run_battle_successfully(self, api_session: ApiSession, prepare_and_clear_battle: str):
+        with allure.step("Находим нашему покемону соперника"):
+            ready_for_battle_response = api_session.get(
+                BASE_URL + "/pokemons",
+                params={"in_pokeball": 1}
+            )
+            assert ready_for_battle_response.status_code == HTTPStatus.OK
+            body = ready_for_battle_response.json()
+            suitable_pokemons = [x for x in body["data"] if x["trainer_id"] != TRAINER_ID_MY]
+            enemy_pokemon_id = suitable_pokemons[0]["id"]
+        with allure.step("Проводим битву"):
+            battle_response = api_session.post(
+                BASE_URL + "/battle",
+                json={
+                  "attacking_pokemon": prepare_and_clear_battle,
+                  "defending_pokemon": enemy_pokemon_id
+                }
+            )
+            assert battle_response.status_code == HTTPStatus.OK
+            body = battle_response.json()
+            assert body["message"] == "Битва проведена"
+            if body["result"] == "Твой покемон проиграл":
+                with allure.step("Проверяем статус покемона после проигрыша"):
+                    response = api_session.get(
+                        BASE_URL + "/pokemons/" + str(prepare_and_clear_battle)
+                    )
+                    body = response.json()
+                    assert body["in_pokeball"] == 0
+                    assert body["status"] == 0
+            else:
+                with allure.step("Проверяем статус покемона после выигрыша"):
+                    response = api_session.get(
+                        BASE_URL + "/pokemons/" + str(prepare_and_clear_battle)
+                    )
+                    body = response.json()
+                    assert body["status"] == 1
+
+
