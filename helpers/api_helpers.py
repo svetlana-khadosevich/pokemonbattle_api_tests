@@ -6,10 +6,17 @@ from requests import Session
 
 
 class ApiSession:
-    def __init__(self, session: Session):
+    def __init__(self, session: Session, base_url: str = ""):
         self.session = session
+        self.base_url = base_url
+
+    def _build_url(self, url: str) -> str:
+        if url.startswith("http"):
+            return url
+        return f"{self.base_url}/{url.lstrip('/')}"
 
     def _send(self, method: str, url: str, **kwargs):
+        url = self._build_url(url)
         timestamp = time.time() + 5
         while time.time() < timestamp:
             response = self.session.request(method=method, url=url, **kwargs)
