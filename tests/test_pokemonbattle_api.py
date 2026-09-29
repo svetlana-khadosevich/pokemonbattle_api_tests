@@ -19,6 +19,7 @@ from helpers.file_helpers import load_yaml
 class TestGetTrainer:
     @allure.title("Получение тренера по городу 'city:Москва'")
     @pytest.mark.smoke
+    @pytest.mark.api
     def test__get_trainer_by_city__positive(self, api_session: Session) -> None:
         with allure.step("Получаем список тренеров по городу"):
             response = api_session.get(
@@ -35,6 +36,7 @@ class TestGetTrainer:
 
     @allure.title("Получение тренера по ID")
     @pytest.mark.smoke
+    @pytest.mark.api
     def test__get_trainer_by_id__positive(self, api_session: Session) -> None:
         response = api_session.get(
             '/trainers',
@@ -133,6 +135,7 @@ class TestPatchPokemons:
 @allure.suite("Тесты на метод GET/battle")
 class TestGetBattle:
     @allure.title("Проверка схемы ответа метода")
+    @pytest.mark.api
     def test__get_battle(self, api_session: Session) -> None:
         response = api_session.get(
              '/battle'

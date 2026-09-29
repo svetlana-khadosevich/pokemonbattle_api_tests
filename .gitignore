@@ -5,7 +5,6 @@ venv/
 .idea
 
 # Переменные окружения
-.env
 
 __pycache__/
 *.pyc
