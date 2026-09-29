@@ -98,9 +98,9 @@ tests:
 e2e tests:
   stage: trigger
   when: always
-  strategy: depend
   trigger:
     project: python-auto-qa/workspaces/altair/TTIFZ/pokemonbattle_e2e_tests_playwright
+    strategy: depend
 
 final_job:
   stage: final
